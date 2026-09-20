@@ -1,25 +1,173 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "../../components/layout/Header";
+import { Odometer } from "../../components/ui/Odometer";
 import { useAppDispatch } from "../../app/hooks";
-import { startOrder, goToReview } from "../trade/orderSlice";
+import { startOrder, goToReview, setQuantity } from "../trade/orderSlice";
 import { useWatchlistQuery } from "../markets/useWatchlistQuery";
+import { useResearchBarsQuery } from "./useResearchBarsQuery";
 
-// TEMPORARY mock bar heights for the static chart — swap for real chart later
-const MOCK_BARS = [40, 65, 45, 80, 60];
-
-function MockBarChart() {
+function MockBarChart({
+  bars,
+  symbol,
+}: {
+  bars: number[];
+  symbol: string;
+}) {
   return (
-    <div className="flex items-end justify-between gap-2 sm:gap-3 h-40 sm:h-48 px-2">
-      {MOCK_BARS.map((height, i) => (
-        <div
-          key={i}
-          className={`flex-1 rounded-t-[4px] ${
-            i % 2 === 0 ? "bg-signal" : "bg-action"
-          }`}
-          style={{ height: `${height}%` }}
+    <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={symbol}
+          className="flex items-end justify-between gap-2 sm:gap-3 w-full h-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          {bars.map((height, i) => (
+            <motion.div
+              key={i}
+              className={`flex-1 rounded-t-[6px] ${
+                i % 2 === 0 ? "bg-signal" : "bg-action"
+              }`}
+              initial={{ height: 0 }}
+              animate={{ height: `${height}%` }}
+              transition={{
+                duration: 0.4,
+                delay: i * 0.05,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Shared watchlist list — used identically on mobile and desktop
+function WatchlistPanel({
+  watchlist,
+  activeSymbol,
+  onSelect,
+}: {
+  watchlist: { symbol: string; price: number; change: number }[];
+  activeSymbol: string | null;
+  onSelect: (symbol: string) => void;
+}) {
+  return (
+    <div className="flex flex-col bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0">
+      <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-3">
+        Watchlist
+      </h2>
+
+      <div className="flex flex-col">
+        {watchlist.map((item, i) => {
+          const isActive = item.symbol === activeSymbol;
+          const rowIsPositive = item.change >= 0;
+
+          return (
+            <motion.div
+              key={item.symbol}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.3,
+                delay: i * 0.05,
+                ease: "easeOut",
+              }}
+              onClick={() => onSelect(item.symbol)}
+              className={`flex flex-col gap-0.5 px-3 py-2 border-b-2 lg:border-b-3 border-card-border last:border-b-0 text-sm cursor-pointer hover:bg-navy/40 transition-colors ${
+                isActive ? "bg-navy/40" : ""
+              }`}
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-ice/80 uppercase text-sm sm:text-[16px]">
+                  {item.symbol}
+                </span>
+
+                <span
+                  className={`text-sm sm:text-lg ${
+                    rowIsPositive ? "text-signal" : "text-alert"
+                  }`}
+                >
+                  {rowIsPositive ? "+" : ""}
+                  <Odometer
+                    key={item.change}
+                    value={item.change.toFixed(2)}
+                  />
+                  %
+                </span>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Shared order panel — used identically on mobile and desktop
+function OrderPanel({
+  quantity,
+  onQuantityChange,
+  ask,
+  onReview,
+}: {
+  quantity: number;
+  onQuantityChange: (val: number) => void;
+  ask: number;
+  onReview: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0">
+      <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-1">
+        Order
+      </h2>
+
+      <div className="flex justify-between items-center bg-navy rounded-[10px] h-11 px-4 shadow-md shadow-black/10">
+        <span className="text-ice/60 text-xs uppercase">Qty</span>
+
+        <input
+          type="number"
+          min={0}
+          value={quantity}
+          onChange={(e) => onQuantityChange(Number(e.target.value))}
+          className="bg-transparent text-right text-sm font-semibold w-20 outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-      ))}
+      </div>
+
+      <div className="flex justify-between items-center bg-navy rounded-[10px] h-11 px-4 shadow-md shadow-black/10">
+        <span className="text-ice/60 text-xs uppercase">Price</span>
+
+        <span className="text-sm font-semibold tabular-nums">
+          {ask.toFixed(2)}
+        </span>
+      </div>
+
+      <div className="flex justify-between items-center bg-navy rounded-[10px] h-11 px-4 shadow-md shadow-black/10">
+        <span className="text-ice/60 text-xs uppercase">Side</span>
+
+        <span className="text-sm font-semibold text-signal">BUY</span>
+      </div>
+
+      <div className="flex justify-between items-center bg-navy rounded-[10px] h-11 px-4 shadow-md shadow-black/10">
+        <span className="text-ice/60 text-xs uppercase">Est. cost</span>
+
+        <span className="text-sm font-semibold tabular-nums">
+          {(quantity * ask).toFixed(2)}
+        </span>
+      </div>
+
+      <button
+        onClick={onReview}
+        disabled={quantity <= 0}
+        className="mt-2 bg-signal hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed hover:cursor-pointer active:translate-y-0.5 transition-all text-white font-bold py-3 rounded-[10px] shadow-md shadow-black/10"
+      >
+        Review
+      </button>
     </div>
   );
 }
@@ -27,31 +175,46 @@ function MockBarChart() {
 export function Research() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { data: watchlist = [] } = useWatchlistQuery();
 
-  // Selected symbol lives as internal state — defaults to first watchlist item once loaded
+  const { data: watchlist = [], isLoading: isWatchlistLoading } =
+    useWatchlistQuery();
+
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [mobileQuantity, setMobileQuantity] = useState(0);
 
   const activeSymbol = selectedSymbol ?? watchlist[0]?.symbol ?? null;
-  const activeItem = watchlist.find((item) => item.symbol === activeSymbol);
+
+  const activeItem = watchlist.find(
+    (item) => item.symbol === activeSymbol
+  );
 
   const price = activeItem?.price ?? 0;
   const change = activeItem?.change ?? 0;
   const isPositive = change >= 0;
-  // Bid/ask aren't in the watchlist data yet — mocked as a small spread around price
+
   const bid = price - 0.2;
   const ask = price + 0.2;
 
-  const handleTrade = () => {
-    if (!activeSymbol) return;
-    dispatch(startOrder({ symbol: activeSymbol, side: "buy", price }));
-    navigate(`/trade/${activeSymbol}`);
-  };
+  // Research chart data now comes from TanStack Query
+  const {
+    data: researchBars = [],
+    isLoading: isResearchBarsLoading,
+  } = useResearchBarsQuery(activeSymbol);
 
   const handleReview = () => {
     if (!activeSymbol) return;
-    dispatch(startOrder({ symbol: activeSymbol, side: "buy", price }));
+
+    dispatch(
+      startOrder({
+        symbol: activeSymbol,
+        side: "buy",
+        price,
+      })
+    );
+
+    dispatch(setQuantity(mobileQuantity));
     dispatch(goToReview());
+
     navigate(`/trade/${activeSymbol}`);
   };
 
@@ -59,6 +222,7 @@ export function Research() {
     return (
       <div className="min-h-screen bg-navy text-ice flex flex-col">
         <Header />
+
         <div className="max-w-[1440px] mx-auto w-full p-6 text-center flex-1 flex items-center justify-center">
           <p className="text-xl sm:text-2xl font-bold">
             Add an instrument to your watchlist to start researching
@@ -71,8 +235,9 @@ export function Research() {
   return (
     <div className="min-h-screen bg-navy text-ice flex flex-col">
       <Header />
-      <div className="max-w-[1440px] mx-auto w-full py-6 sm:py-10 px-6 flex-1 flex flex-col">
-        {/* Mobile symbol header — hidden on desktop, shown inline in center rail instead */}
+
+      <div className="max-w-[1440px] mx-auto w-full py-6 sm:py-10 px-6 flex-1 flex flex-col min-h-0">
+        {/* Mobile symbol header */}
         <div className="lg:hidden bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-4 mb-4">
           <h1 className="text-sm sm:text-base text-ice/70">
             {activeSymbol} ·{" "}
@@ -91,97 +256,83 @@ export function Research() {
           </h1>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 items-stretch">
-          {/* Left rail — Watchlist (desktop only). Clicking a row selects it here, doesn't navigate. */}
-          <div className="hidden lg:flex flex-col bg-panel rounded-[12px] p-4 w-64 border-2 border-card-border">
-            <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-3">
-              Watchlist
-            </h2>
-            {watchlist.map((item) => {
-              const isActive = item.symbol === activeSymbol;
-              const rowIsPositive = item.change >= 0;
-              return (
-                <button
-                  key={item.symbol}
-                  onClick={() => setSelectedSymbol(item.symbol)}
-                  className={`flex justify-between items-center px-3 py-2 rounded-[6px] border-b-2 border-card-border last:border-b-0 text-sm transition-colors text-left ${
-                    isActive ? "bg-navy/60" : "hover:bg-navy/40"
-                  }`}
-                >
-                  <span className="text-ice/80 uppercase text-sm sm:text-[16px]">
-                    {item.symbol}
-                  </span>
-                  <span
-                    className={`text-sm sm:text-lg tabular-nums ${
-                      rowIsPositive ? "text-signal" : "text-alert"
-                    }`}
-                  >
-                    {rowIsPositive ? "+" : ""}
-                    {item.change.toFixed(2)}%
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 min-h-0 items-stretch">
+          {/* Watchlist */}
+          <WatchlistPanel
+            watchlist={watchlist}
+            activeSymbol={activeSymbol}
+            onSelect={setSelectedSymbol}
+          />
 
           {/* Center rail — Chart + tabs */}
-          <div className="flex-1 flex flex-col gap-4 lg:gap-6">
-            <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4">
-              {/* Desktop-only inline header inside center rail */}
-              <h2 className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums">
-                {activeSymbol} ·{" "}
-                <span className="font-semibold">{price.toFixed(2)}</span> ·{" "}
-                <span
-                  className={
-                    isPositive
-                      ? "text-signal font-semibold"
-                      : "text-alert font-semibold"
-                  }
+          <div className="flex-1 flex flex-col gap-4 lg:gap-6 w-full min-h-0">
+            <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4 shadow-md shadow-black/10 h-[280px] sm:h-[340px] lg:h-auto lg:flex-[7] lg:min-h-0">
+              <AnimatePresence mode="wait">
+                <motion.h2
+                  key={activeSymbol}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums flex-shrink-0"
                 >
-                  {isPositive ? "+" : ""}
-                  {change}%
-                </span>{" "}
-                · Bid {bid.toFixed(2)} / Ask {ask.toFixed(2)}
-              </h2>
+                  {activeSymbol} ·{" "}
+                  <span className="font-semibold">
+                    {price.toFixed(2)}
+                  </span>{" "}
+                  ·{" "}
+                  <span
+                    className={
+                      isPositive
+                        ? "text-signal font-semibold"
+                        : "text-alert font-semibold"
+                    }
+                  >
+                    {isPositive ? "+" : ""}
+                    {change}%
+                  </span>{" "}
+                  · Bid {bid.toFixed(2)} / Ask {ask.toFixed(2)}
+                </motion.h2>
+              </AnimatePresence>
 
-              <MockBarChart />
+              {isResearchBarsLoading ? (
+                <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="flex-1 rounded-t-[6px] bg-card-border/50"
+                      initial={{ height: 0 }}
+                      animate={{ height: `${30 + (i % 5) * 10}%` }}
+                      transition={{
+                        duration: 0.3,
+                        delay: i * 0.03,
+                        ease: "easeOut",
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <MockBarChart
+                  bars={researchBars}
+                  symbol={activeSymbol}
+                />
+              )}
             </div>
 
-            <div className="bg-panel border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-3">
+            <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 shadow-md shadow-black/10 lg:flex-[3] flex items-start flex-shrink-0">
               <span className="text-ice/60 text-xs sm:text-sm uppercase tracking-wide">
                 Fundamentals · News · Filings
               </span>
             </div>
-
-            {/* Mobile-only Trade CTA — placeholder fields + button, pinned per design */}
-            <div className="lg:hidden flex flex-col gap-3">
-              <div className="bg-panel border-2 border-card-border rounded-[10px] h-11" />
-              <div className="bg-panel border-2 border-card-border rounded-[10px] h-11" />
-              <button
-                onClick={handleTrade}
-                className="bg-action hover:brightness-110 transition-all text-white font-bold py-3 rounded-[10px] shadow-md shadow-black/10"
-              >
-                Trade
-              </button>
-            </div>
           </div>
 
-          {/* Right rail — Order panel (desktop only) */}
-          <div className="hidden lg:flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-64 border-2 border-card-border">
-            <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-1">
-              Order
-            </h2>
-            <div className="bg-navy border-2 border-card-border rounded-[10px] h-11" />
-            <div className="bg-navy border-2 border-card-border rounded-[10px] h-11" />
-            <div className="bg-navy border-2 border-card-border rounded-[10px] h-11" />
-            <div className="bg-navy border-2 border-card-border rounded-[10px] h-11" />
-            <button
-              onClick={handleReview}
-              className="mt-2 bg-signal hover:brightness-110 transition-all text-white font-bold py-3 rounded-[10px] shadow-md shadow-black/10"
-            >
-              Review
-            </button>
-          </div>
+          {/* Order panel */}
+          <OrderPanel
+            quantity={mobileQuantity}
+            onQuantityChange={setMobileQuantity}
+            ask={ask}
+            onReview={handleReview}
+          />
         </div>
       </div>
     </div>

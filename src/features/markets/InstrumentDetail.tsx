@@ -9,8 +9,8 @@ import {
   Cell,
 } from "recharts";
 import { Header } from "../../components/layout/Header";
-import { instruments } from "./data";
-import { bidLevels, askLevels } from "./orderBookData";
+import { useInstrumentsQuery } from "./useInstrumentsQuery";
+import { useOrderBookQuery } from "./useOrderBookQuery";
 import { Odometer } from "../../components/ui/Odometer";
 import { useRollIn } from "../../hooks/useRollIn";
 import { useAppDispatch } from "../../app/hooks";
@@ -28,6 +28,8 @@ const CHART_COLORS = ["var(--color-signal)", "var(--color-action)"];
 
 export function InstrumentDetail() {
   const { symbol } = useParams<{ symbol: string }>();
+  const { data: instruments = [], isLoading: instrumentsLoading } = useInstrumentsQuery();
+  const { data: orderBook, isLoading: orderBookLoading } = useOrderBookQuery();
   const instrument = instruments.find((i) => i.symbol === symbol);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -36,6 +38,17 @@ export function InstrumentDetail() {
   const peRoll = useRollIn(instrument?.pe.toString() ?? "0");
   const yieldRoll = useRollIn(instrument ? `${instrument.yield}%` : "0%");
   const highRoll = useRollIn(instrument?.high52w.toFixed(2) ?? "0");
+
+  if (instrumentsLoading || orderBookLoading) {
+    return (
+      <div className="min-h-screen bg-navy text-ice flex flex-col">
+        <Header />
+        <div className="max-w-[1440px] mx-auto w-full p-6 text-center">
+          <p className="text-ice/60">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!instrument) {
     return (
@@ -52,8 +65,8 @@ export function InstrumentDetail() {
   }
 
   const isPositive = instrument.change >= 0;
-  const bidData = bidLevels.map((val, i) => ({ name: `b${i}`, value: val }));
-  const askData = askLevels.map((val, i) => ({ name: `a${i}`, value: val }));
+  const bidData = (orderBook?.bidLevels ?? []).map((val, i) => ({ name: `b${i}`, value: val }));
+  const askData = (orderBook?.askLevels ?? []).map((val, i) => ({ name: `a${i}`, value: val }));
 
   const handleBuy = () => {
     dispatch(

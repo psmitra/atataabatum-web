@@ -2,11 +2,13 @@ import { useState, useRef, useLayoutEffect } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "../../components/layout/Header";
-import { instruments } from "./data";
+import { useInstrumentsQuery } from "./useInstrumentsQuery";
+import { SkeletonList } from "../../components/feedback/SkeletonList";
 
 const sectors = ["All", "Banking", "Energy", "Telecom"] as const;
 
 export function MarketsList() {
+  const { data: instruments = [], isLoading } = useInstrumentsQuery();
   const [activeSector, setActiveSector] =
     useState<(typeof sectors)[number]>("All");
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -87,53 +89,59 @@ export function MarketsList() {
             <span className="text-right pr-1">Volume</span>
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeSector}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {filtered.map((item, i) => (
-                <motion.div
-                  key={item.symbol}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: i * 0.05,
-                    ease: "easeOut",
-                  }}
-                >
-                  <Link
-                    to={`/markets/${item.symbol}`}
-                    style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr" }}
-                    className={`grid gap-2 sm:gap-4 px-4 sm:px-6 py-3 border-card-border hover:bg-navy/40 transition-colors text-[12px] sm:text-[16px]
-              ${i !== filtered.length - 1 ? "border-b-2 lg:border-b-3" : ""}`}
+          {isLoading ? (
+            <div className="px-4 sm:px-6 py-3">
+              <SkeletonList rows={7} />
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSector}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                {filtered.map((item, i) => (
+                  <motion.div
+                    key={item.symbol}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: i * 0.05,
+                      ease: "easeOut",
+                    }}
                   >
-                    <span className="text-[12px] sm:text-[16px] text-ice/80 truncate">
-                      {item.symbol}
-                    </span>
-                    <span className="text-[12px] sm:text-[16px] text-ice/80">
-                      {item.last.toFixed(2)}
-                    </span>
-                    <span
-                      className={
-                        item.change >= 0 ? "text-signal" : "text-alert"
-                      }
+                    <Link
+                      to={`/markets/${item.symbol}`}
+                      style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr" }}
+                      className={`grid gap-2 sm:gap-4 px-4 sm:px-6 py-3 border-card-border hover:bg-navy/40 transition-colors text-[12px] sm:text-[16px]
+                ${i !== filtered.length - 1 ? "border-b-2 lg:border-b-3" : ""}`}
                     >
-                      {item.change >= 0 ? "+" : ""}
-                      {item.change}%
-                    </span>
-                    <span className="text-right text-ice/80 pr-1">
-                      {item.volume}
-                    </span>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+                      <span className="text-[12px] sm:text-[16px] text-ice/80 truncate">
+                        {item.symbol}
+                      </span>
+                      <span className="text-[12px] sm:text-[16px] text-ice/80">
+                        {item.last.toFixed(2)}
+                      </span>
+                      <span
+                        className={
+                          item.change >= 0 ? "text-signal" : "text-alert"
+                        }
+                      >
+                        {item.change >= 0 ? "+" : ""}
+                        {item.change}%
+                      </span>
+                      <span className="text-right text-ice/80 pr-1">
+                        {item.volume}
+                      </span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </div>
     </div>

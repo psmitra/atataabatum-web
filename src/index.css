@@ -73,6 +73,14 @@
   }
 }
 
+@layer base {
+  button:not(:disabled),
+  a,
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
 html {
   /* scrollbar-gutter: stable; */
   overflow-x: clip;

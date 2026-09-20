@@ -28,7 +28,7 @@ export function WatchlistRow({
 
   const handleClick = () => {
     dispatch(startOrder({ symbol, side: 'buy', price }));
-    navigate(`/trade/${symbol}`);
+    navigate(`/markets/${symbol}`);
   };
 
   return (

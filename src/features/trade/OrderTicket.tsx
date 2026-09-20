@@ -225,7 +225,10 @@ export function OrderTicket() {
             className="rounded-[12px] p-4 sm:p-6 text-center flex flex-col gap-4"
             style={{ backgroundColor: "#3a1f2b", border: "2px solid #d64545" }}
           >
-            <h2 className="text-base sm:text-lg font-bold" style={{ color: "#f09977" }}>
+            <h2
+              className="text-base sm:text-lg font-bold"
+              style={{ color: "#f09977" }}
+            >
               Order rejected
             </h2>
             <p className="text-sm sm:text-base" style={{ color: "#f09977" }}>
@@ -248,7 +251,10 @@ export function OrderTicket() {
             <p className="text-ice/70 tabular-nums">
               Reference: {order.orderReference}
             </p>
-            <Link to="/portfolio" className="text-action underline">
+            <Link
+              to="/portfolio"
+              className="mt-2 btn-primary hover:brightness-110 hover:cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:brightness-95 transition-all duration-200 text-white font-semibold px-5 py-2.5 rounded-[10px] text-sm sm:text-base"
+            >
               Go to Portfolio
             </Link>
           </div>

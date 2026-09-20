@@ -6,24 +6,22 @@ import { EmptyState } from "../../components/feedback/EmptyState";
 import { SkeletonList } from "../../components/feedback/SkeletonList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
-
-// TEMPORARY mock data — replace with real holdings from API/store
-const holdings = [
-  { symbol: "GTCO", qty: 500, value: 64200, pl: 4.2 },
-  { symbol: "MTNN", qty: 150, value: 14430, pl: -0.7 },
-  { symbol: "DANGCEM", qty: 80, value: 17020, pl: 0.4 },
-  { symbol: "ZENITH", qty: 400, value: 16420, pl: 2.6 },
-  { symbol: "SEPLAT", qty: 120, value: 9072, pl: -1.4 },
-];
-
-const TOTAL_VALUE = 842300;
-const TODAY_CHANGE = 1.9;
-const CASH = 24100;
+import { useNavigate } from "react-router";
+import { usePortfolioQuery } from "./usePortfolioQuery";
+import { usePortfolioSummaryQuery } from "./usePortfolioSummaryQuery";
 
 export function Portfolio() {
-  // TEMPORARY: swap for real isLoading from TanStack Query once wired up
-  const [isLoading] = useState(false);
+  const navigate = useNavigate();
+  const { data: holdings = [], isLoading: holdingsLoading } =
+    usePortfolioQuery();
+  const { data: summary, isLoading: summaryLoading } =
+    usePortfolioSummaryQuery();
+
+  const totalValue = summary?.totalValue ?? 0;
+  const todayChange = summary?.todayChangePercent ?? 0;
+  const cash = summary?.cash ?? 0;
+
+  const isLoading = holdingsLoading || summaryLoading;
 
   return (
     <div className="min-h-screen bg-navy text-ice flex flex-col">
@@ -36,13 +34,13 @@ export function Portfolio() {
         </div>
 
         <div className="grid grid-cols-2 md:flex gap-4 lg:gap-6 mb-6">
-          <StatCard label="Total value" value={TOTAL_VALUE.toLocaleString()} />
+          <StatCard label="Total value" value={totalValue.toLocaleString()} />
           <StatCard
             label="Today"
-            value={`${TODAY_CHANGE >= 0 ? "+" : ""}${TODAY_CHANGE}%`}
-            tone={TODAY_CHANGE >= 0 ? "signal" : "alert"}
+            value={`${todayChange >= 0 ? "+" : ""}${todayChange}%`}
+            tone={todayChange >= 0 ? "signal" : "alert"}
           />
-          <StatCard label="Cash" value={CASH.toLocaleString()} tone="action" />
+          <StatCard label="Cash" value={cash.toLocaleString()} tone="action" />
         </div>
 
         {isLoading ? (
@@ -56,7 +54,7 @@ export function Portfolio() {
               title="No holdings yet"
               message="Place your first trade to start building your portfolio."
               actionLabel="Go to Markets"
-              onAction={() => {}}
+              onAction={() => navigate("/markets")}
             />
           </div>
         ) : (

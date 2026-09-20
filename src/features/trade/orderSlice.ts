@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { MOCK_AVAILABLE_CASH } from "../../lib/mockData";
 
 type OrderSide = "buy" | "sell";
 type OrderStep = "size" | "review" | "confirmed" | "rejected";
@@ -24,7 +25,7 @@ const initialState: OrderState = {
 };
 
 // Mocked available cash — swap for real portfolio state once wired up
-const AVAILABLE_CASH = 24100;
+const AVAILABLE_CASH = MOCK_AVAILABLE_CASH;
 
 const orderSlice = createSlice({
   name: "order",
