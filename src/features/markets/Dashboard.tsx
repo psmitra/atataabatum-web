@@ -17,10 +17,7 @@ export function Dashboard() {
 
   const {
     data: stats,
-    isLoading: isStatsLoading,
   } = useDashboardStatsQuery();
-
-  const isLoading = isWatchlistLoading || isStatsLoading;
 
   return (
     <div className="min-h-screen bg-navy text-ice flex flex-col">

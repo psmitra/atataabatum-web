@@ -8,13 +8,7 @@ import { startOrder, goToReview, setQuantity } from "../trade/orderSlice";
 import { useWatchlistQuery } from "../markets/useWatchlistQuery";
 import { useResearchBarsQuery } from "./useResearchBarsQuery";
 
-function MockBarChart({
-  bars,
-  symbol,
-}: {
-  bars: number[];
-  symbol: string;
-}) {
+function MockBarChart({ bars, symbol }: { bars: number[]; symbol: string }) {
   return (
     <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
       <AnimatePresence mode="wait">
@@ -94,11 +88,7 @@ function WatchlistPanel({
                   }`}
                 >
                   {rowIsPositive ? "+" : ""}
-                  <Odometer
-                    key={item.change}
-                    value={item.change.toFixed(2)}
-                  />
-                  %
+                  <Odometer key={item.change} value={item.change.toFixed(2)} />%
                 </span>
               </div>
             </motion.div>
@@ -176,17 +166,14 @@ export function Research() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { data: watchlist = [], isLoading: isWatchlistLoading } =
-    useWatchlistQuery();
+  const { data: watchlist = [] } = useWatchlistQuery();
 
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [mobileQuantity, setMobileQuantity] = useState(0);
 
   const activeSymbol = selectedSymbol ?? watchlist[0]?.symbol ?? null;
 
-  const activeItem = watchlist.find(
-    (item) => item.symbol === activeSymbol
-  );
+  const activeItem = watchlist.find((item) => item.symbol === activeSymbol);
 
   const price = activeItem?.price ?? 0;
   const change = activeItem?.change ?? 0;
@@ -196,10 +183,8 @@ export function Research() {
   const ask = price + 0.2;
 
   // Research chart data now comes from TanStack Query
-  const {
-    data: researchBars = [],
-    isLoading: isResearchBarsLoading,
-  } = useResearchBarsQuery(activeSymbol);
+  const { data: researchBars = [], isLoading: isResearchBarsLoading } =
+    useResearchBarsQuery(activeSymbol);
 
   const handleReview = () => {
     if (!activeSymbol) return;
@@ -209,7 +194,7 @@ export function Research() {
         symbol: activeSymbol,
         side: "buy",
         price,
-      })
+      }),
     );
 
     dispatch(setQuantity(mobileQuantity));
@@ -277,10 +262,7 @@ export function Research() {
                   className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums flex-shrink-0"
                 >
                   {activeSymbol} ·{" "}
-                  <span className="font-semibold">
-                    {price.toFixed(2)}
-                  </span>{" "}
-                  ·{" "}
+                  <span className="font-semibold">{price.toFixed(2)}</span> ·{" "}
                   <span
                     className={
                       isPositive
@@ -312,10 +294,7 @@ export function Research() {
                   ))}
                 </div>
               ) : (
-                <MockBarChart
-                  bars={researchBars}
-                  symbol={activeSymbol}
-                />
+                <MockBarChart bars={researchBars} symbol={activeSymbol} />
               )}
             </div>
 
