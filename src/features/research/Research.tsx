@@ -8,7 +8,13 @@ import { startOrder, goToReview, setQuantity } from "../trade/orderSlice";
 import { useWatchlistQuery } from "../markets/useWatchlistQuery";
 import { useResearchBarsQuery } from "./useResearchBarsQuery";
 
-function MockBarChart({ bars, symbol }: { bars: number[]; symbol: string }) {
+function MockBarChart({
+  bars,
+  symbol,
+}: {
+  bars: number[];
+  symbol: string;
+}) {
   return (
     <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
       <AnimatePresence mode="wait">
@@ -41,14 +47,33 @@ function MockBarChart({ bars, symbol }: { bars: number[]; symbol: string }) {
   );
 }
 
+// Skeleton rows shown while watchlist loads
+function WatchlistSkeleton() {
+  return (
+    <div className="flex flex-col gap-1.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex justify-between items-center px-3 py-2 border-b-2 lg:border-b-3 border-card-border last:border-b-0 animate-pulse"
+        >
+          <div className="h-4 w-14 bg-card-border/50 rounded" />
+          <div className="h-4 w-10 bg-card-border/50 rounded" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Shared watchlist list — used identically on mobile and desktop
 function WatchlistPanel({
   watchlist,
   activeSymbol,
+  isLoading,
   onSelect,
 }: {
   watchlist: { symbol: string; price: number; change: number }[];
   activeSymbol: string | null;
+  isLoading: boolean;
   onSelect: (symbol: string) => void;
 }) {
   return (
@@ -57,44 +82,52 @@ function WatchlistPanel({
         Watchlist
       </h2>
 
-      <div className="flex flex-col">
-        {watchlist.map((item, i) => {
-          const isActive = item.symbol === activeSymbol;
-          const rowIsPositive = item.change >= 0;
+      {isLoading ? (
+        <WatchlistSkeleton />
+      ) : (
+        <div className="flex flex-col">
+          {watchlist.map((item, i) => {
+            const isActive = item.symbol === activeSymbol;
+            const rowIsPositive = item.change >= 0;
 
-          return (
-            <motion.div
-              key={item.symbol}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.3,
-                delay: i * 0.05,
-                ease: "easeOut",
-              }}
-              onClick={() => onSelect(item.symbol)}
-              className={`flex flex-col gap-0.5 px-3 py-2 border-b-2 lg:border-b-3 border-card-border last:border-b-0 text-sm cursor-pointer hover:bg-navy/40 transition-colors ${
-                isActive ? "bg-navy/40" : ""
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-ice/80 uppercase text-sm sm:text-[16px]">
-                  {item.symbol}
-                </span>
+            return (
+              <motion.div
+                key={item.symbol}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: i * 0.05,
+                  ease: "easeOut",
+                }}
+                onClick={() => onSelect(item.symbol)}
+                className={`flex flex-col gap-0.5 px-3 py-2 border-b-2 lg:border-b-3 border-card-border last:border-b-0 text-sm cursor-pointer hover:bg-navy/40 transition-colors ${
+                  isActive ? "bg-navy/40" : ""
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-ice/80 uppercase text-sm sm:text-[16px]">
+                    {item.symbol}
+                  </span>
 
-                <span
-                  className={`text-sm sm:text-lg ${
-                    rowIsPositive ? "text-signal" : "text-alert"
-                  }`}
-                >
-                  {rowIsPositive ? "+" : ""}
-                  <Odometer key={item.change} value={item.change.toFixed(2)} />%
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                  <span
+                    className={`text-sm sm:text-lg ${
+                      rowIsPositive ? "text-signal" : "text-alert"
+                    }`}
+                  >
+                    {rowIsPositive ? "+" : ""}
+                    <Odometer
+                      key={item.change}
+                      value={item.change.toFixed(2)}
+                    />
+                    %
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -166,14 +199,17 @@ export function Research() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { data: watchlist = [] } = useWatchlistQuery();
+  const { data: watchlist = [], isLoading: isWatchlistLoading } =
+    useWatchlistQuery();
 
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [mobileQuantity, setMobileQuantity] = useState(0);
 
   const activeSymbol = selectedSymbol ?? watchlist[0]?.symbol ?? null;
 
-  const activeItem = watchlist.find((item) => item.symbol === activeSymbol);
+  const activeItem = watchlist.find(
+    (item) => item.symbol === activeSymbol
+  );
 
   const price = activeItem?.price ?? 0;
   const change = activeItem?.change ?? 0;
@@ -182,9 +218,10 @@ export function Research() {
   const bid = price - 0.2;
   const ask = price + 0.2;
 
-  // Research chart data now comes from TanStack Query
-  const { data: researchBars = [], isLoading: isResearchBarsLoading } =
-    useResearchBarsQuery(activeSymbol);
+  const {
+    data: researchBars = [],
+    isLoading: isResearchBarsLoading,
+  } = useResearchBarsQuery(activeSymbol);
 
   const handleReview = () => {
     if (!activeSymbol) return;
@@ -194,7 +231,7 @@ export function Research() {
         symbol: activeSymbol,
         side: "buy",
         price,
-      }),
+      })
     );
 
     dispatch(setQuantity(mobileQuantity));
@@ -202,6 +239,17 @@ export function Research() {
 
     navigate(`/trade/${activeSymbol}`);
   };
+
+  if (isWatchlistLoading) {
+    return (
+      <div className="min-h-screen bg-navy text-ice flex flex-col">
+        <Header />
+        <div className="max-w-[1440px] mx-auto w-full p-6 text-center flex-1 flex items-center justify-center">
+          <p className="text-ice/60">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!activeSymbol) {
     return (
@@ -246,6 +294,7 @@ export function Research() {
           <WatchlistPanel
             watchlist={watchlist}
             activeSymbol={activeSymbol}
+            isLoading={isWatchlistLoading}
             onSelect={setSelectedSymbol}
           />
 
@@ -262,7 +311,10 @@ export function Research() {
                   className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums flex-shrink-0"
                 >
                   {activeSymbol} ·{" "}
-                  <span className="font-semibold">{price.toFixed(2)}</span> ·{" "}
+                  <span className="font-semibold">
+                    {price.toFixed(2)}
+                  </span>{" "}
+                  ·{" "}
                   <span
                     className={
                       isPositive
@@ -294,7 +346,10 @@ export function Research() {
                   ))}
                 </div>
               ) : (
-                <MockBarChart bars={researchBars} symbol={activeSymbol} />
+                <MockBarChart
+                  bars={researchBars}
+                  symbol={activeSymbol}
+                />
               )}
             </div>
 

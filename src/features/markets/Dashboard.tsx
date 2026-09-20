@@ -9,6 +9,15 @@ import { SkeletonList } from "../../components/feedback/SkeletonList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
+function StatCardSkeleton() {
+  return (
+    <div className="bg-panel rounded-[12px] p-4 sm:p-7 sm:pt-5 flex-1 min-h-[100px] lg:min-h-[150px] flex flex-col justify-start gap-3.5 border-2 border-card-border animate-pulse">
+      <div className="h-4 w-16 bg-card-border/50 rounded" />
+      <div className="h-8 w-20 bg-card-border/50 rounded" />
+    </div>
+  );
+}
+
 export function Dashboard() {
   const {
     data: watchlist = [],
@@ -17,6 +26,7 @@ export function Dashboard() {
 
   const {
     data: stats,
+    isLoading: isStatsLoading,
   } = useDashboardStatsQuery();
 
   return (
@@ -26,29 +36,40 @@ export function Dashboard() {
       <div className="max-w-[1440px] mx-auto w-full py-10 px-6 flex flex-col flex-1">
         {/* Dashboard Stats */}
         <div className="grid grid-cols-2 md:flex gap-4 lg:gap-6 mb-6">
-          <StatCard
-            label="Index"
-            value={stats?.index ?? "--"}
-            tone="signal"
-          />
+          {isStatsLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatCard
+                label="Index"
+                value={stats?.index ?? "--"}
+                tone="signal"
+              />
 
-          <StatCard
-            label="Volume"
-            value={stats?.volume ?? "--"}
-            tone="action"
-          />
+              <StatCard
+                label="Volume"
+                value={stats?.volume ?? "--"}
+                tone="action"
+              />
 
-          <StatCard
-            label="Advancers"
-            value={stats?.advancers ?? "--"}
-            tone="signal"
-          />
+              <StatCard
+                label="Advancers"
+                value={stats?.advancers ?? "--"}
+                tone="signal"
+              />
 
-          <StatCard
-            label="Decliners"
-            value={stats?.decliners ?? "--"}
-            tone="alert"
-          />
+              <StatCard
+                label="Decliners"
+                value={stats?.decliners ?? "--"}
+                tone="alert"
+              />
+            </>
+          )}
         </div>
 
         {/* Chart + Watchlist */}
