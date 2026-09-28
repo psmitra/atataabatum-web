@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router';
-// import { ThemeToggle } from '../ui/ThemeToggle';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { HamburgerButton } from '../ui/HamburgerButton';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { HeaderControlsPortal } from './HeaderControlsPortal';
@@ -58,6 +58,7 @@ export const Header = () => {
 
           {/* Invisible placeholder — reserves layout space only, not interactive */}
           <div className="flex items-center gap-3 invisible" aria-hidden="true">
+            <ThemeToggle />
             <div className="min-[480px]:hidden">
               <HamburgerButton isOpen={menuOpen} onClick={() => {}} />
             </div>
@@ -67,6 +68,7 @@ export const Header = () => {
 
       {/* Real, interactive controls — portaled above everything */}
       <HeaderControlsPortal>
+        <ThemeToggle />
         <div className="min-[480px]:hidden">
           <HamburgerButton isOpen={menuOpen} onClick={() => setMenuOpen((prev) => !prev)} />
         </div>
