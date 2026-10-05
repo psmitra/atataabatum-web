@@ -28,7 +28,8 @@ const CHART_COLORS = ["var(--color-signal)", "var(--color-action)"];
 
 export function InstrumentDetail() {
   const { symbol } = useParams<{ symbol: string }>();
-  const { data: instruments = [], isLoading: instrumentsLoading } = useInstrumentsQuery();
+  const { data: instruments = [], isLoading: instrumentsLoading } =
+    useInstrumentsQuery();
   const { data: orderBook, isLoading: orderBookLoading } = useOrderBookQuery();
   const instrument = instruments.find((i) => i.symbol === symbol);
   const navigate = useNavigate();
@@ -65,8 +66,14 @@ export function InstrumentDetail() {
   }
 
   const isPositive = instrument.change >= 0;
-  const bidData = (orderBook?.bidLevels ?? []).map((val, i) => ({ name: `b${i}`, value: val }));
-  const askData = (orderBook?.askLevels ?? []).map((val, i) => ({ name: `a${i}`, value: val }));
+  const bidData = (orderBook?.bidLevels ?? []).map((val, i) => ({
+    name: `b${i}`,
+    value: val,
+  }));
+  const askData = (orderBook?.askLevels ?? []).map((val, i) => ({
+    name: `a${i}`,
+    value: val,
+  }));
 
   const handleBuy = () => {
     dispatch(
@@ -95,29 +102,33 @@ export function InstrumentDetail() {
       <Header />
       <div className="max-w-[1440px] mx-auto w-full py-6 sm:py-10 px-6 flex-1 flex flex-col gap-4 md:gap-6">
         {/* Top bar */}
-        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-4 flex items-center gap-3 flex-wrap text-sm sm:text-base">
-          <Link
-            to="/markets"
-            className="text-ice/80 hover:text-ice text-sm sm:text-lg"
-          >
-            &lt; Back
-          </Link>
-          <span className="text-ice/80 text-sm sm:text-lg">·</span>
-          <span className="text-ice/80 text-sm sm:text-lg">
-            {instrument.symbol}
-          </span>
-          <span className="text-ice/80 text-sm sm:text-lg">·</span>
-          <span className="text-ice/80 text-sm sm:text-lg">
-            {instrument.last.toFixed(2)}
-          </span>
-          <span className={isPositive ? "text-signal" : "text-alert"}>
-            {isPositive ? "+" : ""}
-            {instrument.change}%
-          </span>
-          <span className="text-ice/80 text-sm sm:text-lg">·</span>
-          <span className="text-ice/80 text-sm sm:text-lg">
-            Bid {instrument.bid.toFixed(2)} / Ask {instrument.ask.toFixed(2)}
-          </span>
+        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-4 flex flex-col gap-3 text-sm sm:text-base">
+          <div className="w-full flex justify-end">
+            <Link
+              to="/markets"
+              className="text-ice/80 hover:text-ice text-sm sm:text-lg"
+            >
+              &lt; Back
+            </Link>
+          </div>
+
+          <div className="w-full flex items-center gap-2 flex-wrap">
+            <span className="text-ice/80 text-sm sm:text-lg">
+              {instrument.symbol}
+            </span>
+            <span className="text-ice/80 text-sm sm:text-lg">·</span>
+            <span className="text-ice/80 text-sm sm:text-lg">
+              {instrument.last.toFixed(2)}
+            </span>
+            <span className={isPositive ? "text-signal" : "text-alert"}>
+              {isPositive ? "+" : ""}
+              {instrument.change}%
+            </span>
+            <span className="text-ice/80 text-sm sm:text-lg">·</span>
+            <span className="text-ice/80 text-sm sm:text-lg">
+              Bid {instrument.bid.toFixed(2)} / Ask {instrument.ask.toFixed(2)}
+            </span>
+          </div>
         </div>
 
         {/* Chart + Order book */}
