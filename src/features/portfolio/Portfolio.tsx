@@ -12,6 +12,7 @@ import { usePortfolioQuery } from "./usePortfolioQuery";
 import { usePortfolioSummaryQuery } from "./usePortfolioSummaryQuery";
 import { MOCK_HOLDINGS } from "../../lib/mockData";
 import { BackButton } from "../../components/ui/BackButton";
+import { MAIN_DASHBOARD_URL } from "../../lib/config";
 
 export function Portfolio() {
   const navigate = useNavigate();
@@ -33,10 +34,13 @@ export function Portfolio() {
       <div className="max-w-[1440px] mx-auto w-full py-4 sm:py-6 px-6 flex flex-col flex-1 min-h-0">
         {/* Title bar */}
         <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-2 mb-4 sm:mb-6 shrink-0 flex items-center justify-between gap-3">
-          <h1 className="text-sm sm:text-base text-ice/70">
+          <h1 className="text-sm sm:text-base text-ice/70 min-w-0 truncate">
             Portfolio · <span className="text-ice font-semibold">Holdings</span>
           </h1>
-          <BackButton to="/" />
+          <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+            <BackButton to="/" />
+            <BackButton variant="home" href={MAIN_DASHBOARD_URL} />
+          </div>
         </div>
 
         {/* Stats */}

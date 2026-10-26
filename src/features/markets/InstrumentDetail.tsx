@@ -17,6 +17,7 @@ import { useAppDispatch } from "../../app/hooks";
 import { startOrder } from "../trade/orderSlice";
 import { BackButton } from "../../components/ui/BackButton";
 import { LoadingState } from "../../components/feedback/LoadingState";
+import { MAIN_DASHBOARD_URL } from "../../lib/config";
 
 const fakePriceData = [
   { label: "D1", value: 25 },
@@ -115,8 +116,9 @@ export function InstrumentDetail() {
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-themed flex flex-col gap-4 md:gap-6 -mr-4 pr-4">
           {/* Top bar (original) */}
           <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-2 flex flex-col gap-3 text-sm sm:text-base shrink-0">
-            <div className="w-full flex justify-end">
+            <div className="w-full flex items-center justify-end gap-4 sm:gap-6">
               <BackButton to="/markets" />
+              <BackButton variant="home" href={MAIN_DASHBOARD_URL} />
             </div>
 
             <div className="w-full flex items-center gap-2 flex-wrap">

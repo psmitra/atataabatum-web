@@ -9,6 +9,7 @@ import { useWatchlistQuery } from "../markets/useWatchlistQuery";
 import { useResearchBarsQuery } from "./useResearchBarsQuery";
 import { BackButton } from "../../components/ui/BackButton";
 import { LoadingState } from "../../components/feedback/LoadingState";
+import { MAIN_DASHBOARD_URL } from "../../lib/config";
 
 type OrderSide = "buy" | "sell";
 
@@ -119,7 +120,17 @@ function WatchlistPanel({
   );
 }
 
-// Shared order panel — now includes a working Buy/Sell toggle
+type OrderControlProps = {
+  side: OrderSide;
+  onSideChange: (side: OrderSide) => void;
+  quantity: number;
+  onQuantityChange: (val: number) => void;
+  ask: number;
+  bid: number;
+  onReview: () => void;
+};
+
+// Desktop order panel (sidebar, hidden on mobile)
 function OrderPanel({
   side,
   onSideChange,
@@ -128,25 +139,16 @@ function OrderPanel({
   ask,
   bid,
   onReview,
-}: {
-  side: OrderSide;
-  onSideChange: (side: OrderSide) => void;
-  quantity: number;
-  onQuantityChange: (val: number) => void;
-  ask: number;
-  bid: number;
-  onReview: () => void;
-}) {
+}: OrderControlProps) {
   const isBuy = side === "buy";
   const price = isBuy ? ask : bid;
 
   return (
-    <div className="flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0 min-h-0 lg:overflow-y-auto scrollbar-themed">
+    <div className="hidden lg:flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-64 border-2 border-card-border shrink-0 min-h-0 overflow-y-auto scrollbar-themed">
       <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-1">
         Order
       </h2>
 
-      {/* Buy/Sell toggle — matches OrderTicket's style */}
       <div className="flex gap-2">
         <button
           onClick={() => onSideChange("buy")}
@@ -206,6 +208,101 @@ function OrderPanel({
         } hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed hover:cursor-pointer active:translate-y-0.5 transition-all text-white font-bold py-3 rounded-[10px] shadow-md shadow-black/10`}
       >
         Review
+      </button>
+    </div>
+  );
+}
+
+// Mobile: compact order dock pinned to the bottom of the screen
+function MobileOrderBar({
+  side,
+  onSideChange,
+  quantity,
+  onQuantityChange,
+  ask,
+  bid,
+  onReview,
+}: OrderControlProps) {
+  const isBuy = side === "buy";
+  const price = isBuy ? ask : bid;
+  const cost = quantity * price;
+
+  return (
+    <div className="lg:hidden shrink-0 bg-d-blue border-t-2 border-card-border px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] grid grid-cols-2 gap-2.5 shadow-[0_-6px_16px_rgba(0,0,0,0.3)]">
+      {/* Buy */}
+      <button
+        onClick={() => onSideChange("buy")}
+        className={`h-12 rounded-[10px] border-2 flex flex-col items-center justify-center leading-none transition-colors ${
+          isBuy
+            ? "bg-signal border-signal text-white"
+            : "bg-transparent border-signal/40 text-signal"
+        }`}
+      >
+        <span className="font-bold text-sm">BUY</span>
+        <span className="text-[11px] mt-1 tabular-nums opacity-90">
+          {ask.toFixed(2)}
+        </span>
+      </button>
+
+      {/* Sell */}
+      <button
+        onClick={() => onSideChange("sell")}
+        className={`h-12 rounded-[10px] border-2 flex flex-col items-center justify-center leading-none transition-colors ${
+          !isBuy
+            ? "bg-alert border-alert text-white"
+            : "bg-transparent border-alert/40 text-alert"
+        }`}
+      >
+        <span className="font-bold text-sm">SELL</span>
+        <span className="text-[11px] mt-1 tabular-nums opacity-90">
+          {bid.toFixed(2)}
+        </span>
+      </button>
+
+      {/* Qty stepper */}
+      <div className="flex items-center bg-navy rounded-[10px] h-12 overflow-hidden">
+        <button
+          type="button"
+          aria-label="Decrease quantity"
+          onClick={() => onQuantityChange(Math.max(0, quantity - 1))}
+          className="w-11 h-full text-xl text-ice/70 active:bg-card-border/40"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          value={quantity}
+          onChange={(e) => {
+            const val = Number(e.target.value);
+            onQuantityChange(Number.isNaN(val) ? 0 : Math.max(0, val));
+          }}
+          className="bg-transparent text-center text-base font-semibold flex-1 min-w-0 outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <button
+          type="button"
+          aria-label="Increase quantity"
+          onClick={() => onQuantityChange(quantity + 1)}
+          className="w-11 h-full text-xl text-ice/70 active:bg-card-border/40"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Review */}
+      <button
+        onClick={onReview}
+        disabled={quantity <= 0}
+        className={`h-12 rounded-[10px] font-bold text-sm transition-all active:translate-y-0.5 ${
+          quantity <= 0
+            ? "bg-navy text-ice/40 cursor-not-allowed"
+            : isBuy
+              ? "bg-signal text-white"
+              : "bg-alert text-white"
+        }`}
+      >
+        {quantity > 0 ? `Review · ${cost.toFixed(2)}` : "Review"}
       </button>
     </div>
   );
@@ -276,18 +373,30 @@ export function Research() {
     );
   }
 
+  const orderProps: OrderControlProps = {
+    side: orderSide,
+    onSideChange: setOrderSide,
+    quantity: mobileQuantity,
+    onQuantityChange: setMobileQuantity,
+    ask,
+    bid,
+    onReview: handleReview,
+  };
+
   return (
     <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
       <Header />
 
       <div className="max-w-[1440px] mx-auto w-full py-4 sm:py-6 px-6 flex-1 flex flex-col min-h-0">
-        {/* Body: scrolls on mobile (gap before scrollbar), fits the screen on desktop */}
+        {/* Body: scrolls on mobile, fits the screen on desktop */}
         <div className="flex-1 min-h-0 flex flex-col overflow-y-auto lg:overflow-hidden overscroll-contain scrollbar-themed -mr-4 pr-4 lg:mr-0 lg:pr-0">
           <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-2 mb-4 flex flex-col gap-3 text-sm sm:text-base shrink-0">
-            <div className="w-full flex justify-end">
+            <div className="w-full flex items-center justify-end gap-4 sm:gap-6">
               <BackButton to="/" />
+              <BackButton variant="home" href={MAIN_DASHBOARD_URL} />
             </div>
           </div>
+
           {/* Mobile symbol header */}
           <div className="lg:hidden bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-4 mb-4 shrink-0">
             <h1 className="text-sm sm:text-base text-ice/70">
@@ -370,18 +479,14 @@ export function Research() {
               </div>
             </div>
 
-            <OrderPanel
-              side={orderSide}
-              onSideChange={setOrderSide}
-              quantity={mobileQuantity}
-              onQuantityChange={setMobileQuantity}
-              ask={ask}
-              bid={bid}
-              onReview={handleReview}
-            />
+            {/* Desktop order panel (hidden on mobile) */}
+            <OrderPanel {...orderProps} />
           </div>
         </div>
       </div>
+
+      {/* Mobile: sticky order dock (always visible) */}
+      <MobileOrderBar {...orderProps} />
     </div>
   );
 }

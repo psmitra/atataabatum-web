@@ -7,6 +7,7 @@ import { Header } from "../components/layout/Header";
 import { Portfolio } from "../features/portfolio/Portfolio";
 import { Research } from "../features/research/Research";
 import { BackButton } from "../components/ui/BackButton";
+import { MAIN_DASHBOARD_URL } from "../lib/config";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Dashboard /> },
@@ -22,10 +23,9 @@ export const router = createBrowserRouter([
         <Header />
         <div className="max-w-[1440px] mx-auto w-full py-4 sm:py-6 px-6 flex flex-col flex-1 min-h-0">
           {/* Back bar */}
-          <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-2 mb-4 flex flex-col gap-3 text-sm sm:text-base shrink-0">
-            <div className="w-full flex justify-end">
-              <BackButton to="/" />
-            </div>
+          <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-2 mb-4 sm:mb-6 shrink-0 flex items-center justify-end gap-4 sm:gap-6">
+            <BackButton to="/" />
+            <BackButton variant="home" href={MAIN_DASHBOARD_URL} />
           </div>
 
           {/* Centered content */}

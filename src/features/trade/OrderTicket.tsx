@@ -13,6 +13,7 @@ import {
   confirmOrder,
 } from "./orderSlice";
 import { BackButton } from "../../components/ui/BackButton";
+import { MAIN_DASHBOARD_URL } from "../../lib/config";
 
 export function OrderTicket() {
   const { symbol } = useParams<{ symbol: string }>();
@@ -34,12 +35,15 @@ export function OrderTicket() {
     <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
       <Header />
       <div className="max-w-2xl mx-auto w-full py-4 sm:py-6 px-6 sm:px-6 flex-1 min-h-0 flex flex-col">
-        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 sm:px-6 py-4 mb-4 shrink-0 flex items-center justify-between gap-3">
-          <h1 className="text-sm sm:text-base text-ice/70">
+        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-2 mb-4 sm:mb-6 shrink-0 flex items-center justify-between gap-3">
+          <h1 className="text-sm sm:text-base text-ice/70 min-w-0 truncate">
             Order ticket ·{" "}
             <span className="text-ice font-semibold">{symbol}</span>
           </h1>
-          <BackButton to={`/markets/${symbol}`} />
+          <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+            <BackButton to={`/markets/${symbol}`} />
+            <BackButton variant="home" href={MAIN_DASHBOARD_URL} />
+          </div>
         </div>
 
         {order.step === "size" && (
