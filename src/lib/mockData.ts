@@ -68,10 +68,11 @@ export type Instrument = {
   last: number;
   change: number;
   volume: string;
-  sector: "Banking" | "Energy" | "Telecom";
-  mktCap: string;
-  pe: number;
-  yield: number;
+  sector: string;
+  mktCap?: string;   
+  pe?: number;       
+  yield?: number;    
+  unit?: string;     
   high52w: number;
   bid: number;
   ask: number;
@@ -85,6 +86,13 @@ export const MOCK_INSTRUMENTS: Instrument[] = [
   { symbol: "SEPLAT", last: 75.6, change: -1.4, volume: "152K", sector: "Energy", mktCap: "1.1B", pe: 11.4, yield: 3.8, high52w: 84.0, bid: 75.4, ask: 75.8 },
   { symbol: "SNTS", last: 18.9, change: 0.9, volume: "121K", sector: "Telecom", mktCap: "0.5B", pe: 15.0, yield: 1.9, high52w: 21.0, bid: 18.8, ask: 19.0 },
   { symbol: "GCB", last: 64.35, change: -0.3, volume: "96K", sector: "Banking", mktCap: "0.9B", pe: 13.2, yield: 2.7, high52w: 70.0, bid: 64.2, ask: 64.5 },
+
+  // Commodities (placeholder prices)
+  // { symbol: "GOLD", last: 2385.5, change: 0.6, volume: "84K", sector: "Commodities", unit: "per oz", high52w: 2450.0, bid: 2385.0, ask: 2386.0 },
+  // { symbol: "DIAMONDS", last: 5120.0, change: -0.2, volume: "9K", sector: "Commodities", unit: "per carat", high52w: 5400.0, bid: 5100.0, ask: 5140.0 },
+  // { symbol: "CORN", last: 4.62, change: 1.1, volume: "230K", sector: "Commodities", unit: "per bushel", high52w: 5.1, bid: 4.61, ask: 4.63 },
+  // { symbol: "COFFEE", last: 2.34, change: 2.3, volume: "145K", sector: "Commodities", unit: "per lb", high52w: 2.6, bid: 2.33, ask: 2.35 },
+  // { symbol: "TEA", last: 3.18, change: -0.5, volume: "62K", sector: "Commodities", unit: "per kg", high52w: 3.5, bid: 3.16, ask: 3.2 },
 ];
 
 // ---- Order book (per-symbol bid/ask levels) ----

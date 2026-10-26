@@ -7,6 +7,8 @@ import { useAppDispatch } from "../../app/hooks";
 import { startOrder, goToReview, setQuantity } from "../trade/orderSlice";
 import { useWatchlistQuery } from "../markets/useWatchlistQuery";
 import { useResearchBarsQuery } from "./useResearchBarsQuery";
+import { BackButton } from "../../components/ui/BackButton";
+import { LoadingState } from "../../components/feedback/LoadingState";
 
 type OrderSide = "buy" | "sell";
 
@@ -67,15 +69,15 @@ function WatchlistPanel({
   onSelect: (symbol: string) => void;
 }) {
   return (
-    <div className="flex flex-col bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0">
-      <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-3">
+    <div className="flex flex-col bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0 min-h-0 max-h-[240px] lg:max-h-none">
+      <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-3 shrink-0">
         Watchlist
       </h2>
 
       {isLoading ? (
         <WatchlistSkeleton />
       ) : (
-        <div className="flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 scrollbar-themed">
           {watchlist.map((item, i) => {
             const isActive = item.symbol === activeSymbol;
             const rowIsPositive = item.change >= 0;
@@ -139,7 +141,7 @@ function OrderPanel({
   const price = isBuy ? ask : bid;
 
   return (
-    <div className="flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0">
+    <div className="flex flex-col gap-3 bg-panel rounded-[12px] p-4 w-full lg:w-64 border-2 border-card-border shrink-0 min-h-0 lg:overflow-y-auto scrollbar-themed">
       <h2 className="text-ice/60 text-sm uppercase tracking-wide mb-1">
         Order
       </h2>
@@ -252,10 +254,10 @@ export function Research() {
 
   if (isWatchlistLoading) {
     return (
-      <div className="min-h-screen bg-navy text-ice flex flex-col">
+      <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
         <Header />
-        <div className="max-w-[1440px] mx-auto w-full p-6 text-center flex-1 flex items-center justify-center">
-          <p className="text-ice/60">Loading…</p>
+        <div className="max-w-[1440px] mx-auto w-full p-6 flex-1 min-h-0 flex flex-col">
+          <LoadingState label="Loading research" />
         </div>
       </div>
     );
@@ -263,7 +265,7 @@ export function Research() {
 
   if (!activeSymbol) {
     return (
-      <div className="min-h-screen bg-navy text-ice flex flex-col">
+      <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
         <Header />
         <div className="max-w-[1440px] mx-auto w-full p-6 text-center flex-1 flex items-center justify-center">
           <p className="text-xl sm:text-2xl font-bold">
@@ -275,101 +277,109 @@ export function Research() {
   }
 
   return (
-    <div className="min-h-screen bg-navy text-ice flex flex-col">
+    <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
       <Header />
 
-      <div className="max-w-[1440px] mx-auto w-full py-6 sm:py-10 px-6 flex-1 flex flex-col min-h-0">
-        {/* Mobile symbol header */}
-        <div className="lg:hidden bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-4 mb-4">
-          <h1 className="text-sm sm:text-base text-ice/70">
-            {activeSymbol} ·{" "}
-            <span className="text-ice font-semibold tabular-nums">
-              {price.toFixed(2)}
-            </span>{" "}
-            ·{" "}
-            <span
-              className={`font-semibold tabular-nums ${
-                isPositive ? "text-signal" : "text-alert"
-              }`}
-            >
-              {isPositive ? "+" : ""}
-              {change}%
-            </span>
-          </h1>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 min-h-0 items-stretch">
-          <WatchlistPanel
-            watchlist={watchlist}
-            activeSymbol={activeSymbol}
-            isLoading={isWatchlistLoading}
-            onSelect={setSelectedSymbol}
-          />
-
-          <div className="flex-1 flex flex-col gap-4 lg:gap-6 w-full min-h-0">
-            <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4 shadow-md shadow-black/10 h-[280px] sm:h-[340px] lg:h-auto lg:flex-[7] lg:min-h-0">
-              <AnimatePresence mode="wait">
-                <motion.h2
-                  key={activeSymbol}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums flex-shrink-0"
-                >
-                  {activeSymbol} ·{" "}
-                  <span className="font-semibold">{price.toFixed(2)}</span> ·{" "}
-                  <span
-                    className={
-                      isPositive
-                        ? "text-signal font-semibold"
-                        : "text-alert font-semibold"
-                    }
-                  >
-                    {isPositive ? "+" : ""}
-                    {change}%
-                  </span>{" "}
-                  · Bid {bid.toFixed(2)} / Ask {ask.toFixed(2)}
-                </motion.h2>
-              </AnimatePresence>
-
-              {isResearchBarsLoading ? (
-                <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="flex-1 rounded-t-[6px] bg-card-border/50"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${30 + (i % 5) * 10}%` }}
-                      transition={{
-                        duration: 0.3,
-                        delay: i * 0.03,
-                        ease: "easeOut",
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <MockBarChart bars={researchBars} symbol={activeSymbol} />
-              )}
-            </div>
-
-            <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 shadow-md shadow-black/10 lg:flex-[3] flex items-start flex-shrink-0">
-              <span className="text-ice/60 text-xs sm:text-sm uppercase tracking-wide">
-                Fundamentals · News · Filings
-              </span>
+      <div className="max-w-[1440px] mx-auto w-full py-4 sm:py-6 px-6 flex-1 flex flex-col min-h-0">
+        {/* Body: scrolls on mobile (gap before scrollbar), fits the screen on desktop */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto lg:overflow-hidden overscroll-contain scrollbar-themed -mr-4 pr-4 lg:mr-0 lg:pr-0">
+          <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-4 sm:px-6 py-2 mb-4 flex flex-col gap-3 text-sm sm:text-base shrink-0">
+            <div className="w-full flex justify-end">
+              <BackButton to="/" />
             </div>
           </div>
+          {/* Mobile symbol header */}
+          <div className="lg:hidden bg-d-blue border-2 border-card-border rounded-[12px] px-6 py-4 mb-4 shrink-0">
+            <h1 className="text-sm sm:text-base text-ice/70">
+              {activeSymbol} ·{" "}
+              <span className="text-ice font-semibold tabular-nums">
+                {price.toFixed(2)}
+              </span>{" "}
+              ·{" "}
+              <span
+                className={`font-semibold tabular-nums ${
+                  isPositive ? "text-signal" : "text-alert"
+                }`}
+              >
+                {isPositive ? "+" : ""}
+                {change}%
+              </span>
+            </h1>
+          </div>
 
-          <OrderPanel
-            side={orderSide}
-            onSideChange={setOrderSide}
-            quantity={mobileQuantity}
-            onQuantityChange={setMobileQuantity}
-            ask={ask}
-            bid={bid}
-            onReview={handleReview}
-          />
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 shrink-0 lg:shrink lg:flex-1 lg:min-h-0 items-stretch">
+            <WatchlistPanel
+              watchlist={watchlist}
+              activeSymbol={activeSymbol}
+              isLoading={isWatchlistLoading}
+              onSelect={setSelectedSymbol}
+            />
+
+            <div className="flex-1 flex flex-col gap-4 lg:gap-6 w-full min-h-0">
+              <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4 shadow-md shadow-black/10 h-[280px] sm:h-[340px] lg:h-auto lg:flex-[7] lg:min-h-[200px]">
+                <AnimatePresence mode="wait">
+                  <motion.h2
+                    key={activeSymbol}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="hidden lg:block text-ice/80 text-sm sm:text-base tabular-nums shrink-0"
+                  >
+                    {activeSymbol} ·{" "}
+                    <span className="font-semibold">{price.toFixed(2)}</span> ·{" "}
+                    <span
+                      className={
+                        isPositive
+                          ? "text-signal font-semibold"
+                          : "text-alert font-semibold"
+                      }
+                    >
+                      {isPositive ? "+" : ""}
+                      {change}%
+                    </span>{" "}
+                    · Bid {bid.toFixed(2)} / Ask {ask.toFixed(2)}
+                  </motion.h2>
+                </AnimatePresence>
+
+                {isResearchBarsLoading ? (
+                  <div className="flex items-end justify-between gap-2 sm:gap-3 flex-1 min-h-0 px-2">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="flex-1 rounded-t-[6px] bg-card-border/50"
+                        initial={{ height: 0 }}
+                        animate={{ height: `${30 + (i % 5) * 10}%` }}
+                        transition={{
+                          duration: 0.3,
+                          delay: i * 0.03,
+                          ease: "easeOut",
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <MockBarChart bars={researchBars} symbol={activeSymbol} />
+                )}
+              </div>
+
+              <div className="bg-panel border-2 border-card-border rounded-[12px] p-4 sm:p-6 shadow-md shadow-black/10 lg:flex-[3] flex items-start shrink-0">
+                <span className="text-ice/60 text-xs sm:text-sm uppercase tracking-wide">
+                  Fundamentals · News · Filings
+                </span>
+              </div>
+            </div>
+
+            <OrderPanel
+              side={orderSide}
+              onSideChange={setOrderSide}
+              quantity={mobileQuantity}
+              onQuantityChange={setMobileQuantity}
+              ask={ask}
+              bid={bid}
+              onReview={handleReview}
+            />
+          </div>
         </div>
       </div>
     </div>

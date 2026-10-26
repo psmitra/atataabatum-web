@@ -18,7 +18,7 @@ export function StatCard({ label, value, tone = "default" }: StatCardProps) {
   const display = useRollIn(value, 300);
 
   return (
-    <div className="bg-panel rounded-[12px] p-4 sm:p-7 sm:pt-5 flex-1 min-h-[100px] lg:min-h-[150px] flex flex-col justify-start gap-3.5 transition-all duration-200 border-2 border-card-border hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
+    <div className="bg-panel rounded-[12px] p-4 py-3 sm:p-7 sm:pt-5 flex-1 min-h-[100px] lg:min-h-[150px] flex flex-col justify-start gap-3.5 transition-all duration-200 border-2 border-card-border hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
       <p className="text-sm sm:text-lg lg:text-xl text-ice/80 uppercase tracking-wide mb-1">
         {label}
       </p>

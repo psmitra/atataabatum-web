@@ -42,6 +42,31 @@
   --color-nav-divider: #b8c9e0;
 }
 
+@utility scrollbar-themed {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-nav-divider) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-nav-divider);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.2s;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-action);
+    background-clip: content-box;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply bg-signal text-white font-bold py-4 rounded-[10px] text-base sm:text-lg

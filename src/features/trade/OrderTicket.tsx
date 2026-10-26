@@ -12,6 +12,7 @@ import {
   goBackToSize,
   confirmOrder,
 } from "./orderSlice";
+import { BackButton } from "../../components/ui/BackButton";
 
 export function OrderTicket() {
   const { symbol } = useParams<{ symbol: string }>();
@@ -30,129 +31,138 @@ export function OrderTicket() {
   const quantityInvalid = order.quantity <= 0;
 
   return (
-    <div className="min-h-screen bg-navy text-ice flex flex-col">
+    <div className="h-dvh overflow-hidden bg-navy text-ice flex flex-col">
       <Header />
-      <div className="max-w-2xl mx-auto w-full py-6 sm:py-10 px-6 sm:px-6 flex-1">
-        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 sm:px-6 py-4 mb-4">
+      <div className="max-w-2xl mx-auto w-full py-4 sm:py-6 px-6 sm:px-6 flex-1 min-h-0 flex flex-col">
+        <div className="bg-d-blue border-2 border-card-border rounded-[12px] px-6 sm:px-6 py-4 mb-4 shrink-0 flex items-center justify-between gap-3">
           <h1 className="text-sm sm:text-base text-ice/70">
             Order ticket ·{" "}
             <span className="text-ice font-semibold">{symbol}</span>
           </h1>
+          <BackButton to={`/markets/${symbol}`} />
         </div>
 
         {order.step === "size" && (
-          <div className="bg-[#0e2c55] border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4">
-            {/* Buy/Sell toggle */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => dispatch(setSide("buy"))}
-                className={`flex-1 py-3 rounded-[10px] font-bold transition-colors shadow-md shadow-black/10 hover:brightness-110 hover:cursor-pointer ${
-                  isBuy ? "bg-signal text-white" : "bg-panel text-ice/60"
-                }`}
-              >
-                BUY
-              </button>
-              <button
-                onClick={() => dispatch(setSide("sell"))}
-                className={`flex-1 py-3 rounded-[10px] font-bold transition-colors shadow-md shadow-black/10 hover:brightness-110 hover:cursor-pointer ${
-                  !isBuy ? "bg-alert text-white" : "bg-panel text-ice/60"
-                }`}
-              >
-                SELL
-              </button>
-            </div>
+          <div className="bg-[#0e2c55] border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4 min-h-0">
+            {/* Scrollable fields */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-themed -mx-2 px-2 flex flex-col gap-4">
+              {/* Buy/Sell toggle */}
+              <div className="flex gap-3 shrink-0">
+                <button
+                  onClick={() => dispatch(setSide("buy"))}
+                  className={`flex-1 py-3 rounded-[10px] font-bold transition-colors shadow-md shadow-black/10 hover:brightness-110 hover:cursor-pointer ${
+                    isBuy ? "bg-signal text-white" : "bg-panel text-ice/60"
+                  }`}
+                >
+                  BUY
+                </button>
+                <button
+                  onClick={() => dispatch(setSide("sell"))}
+                  className={`flex-1 py-3 rounded-[10px] font-bold transition-colors shadow-md shadow-black/10 hover:brightness-110 hover:cursor-pointer ${
+                    !isBuy ? "bg-alert text-white" : "bg-panel text-ice/60"
+                  }`}
+                >
+                  SELL
+                </button>
+              </div>
 
-            {/* Order type — static */}
-            <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10">
-              <span className="text-ice/60 text-sm uppercase">Order type</span>
-              <span className="text-base sm:text-lg font-semibold">Limit</span>
-            </div>
+              {/* Order type — static */}
+              <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 shrink-0">
+                <span className="text-ice/60 text-sm uppercase">
+                  Order type
+                </span>
+                <span className="text-base sm:text-lg font-semibold">
+                  Limit
+                </span>
+              </div>
 
-            {/* Quantity — editable, with error state */}
-            <div>
-              <div
-                className={`flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 transition-shadow border-2 ${
-                  quantityInvalid
-                    ? "border-alert focus-within:ring-2 focus-within:ring-alert"
-                    : "border-transparent focus-within:ring-2 focus-within:ring-action"
-                }`}
-              >
-                <label className="text-ice/60 text-sm uppercase">
-                  Quantity
-                </label>
+              {/* Quantity — editable, with error state */}
+              <div className="shrink-0">
+                <div
+                  className={`flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 transition-shadow border-2 ${
+                    quantityInvalid
+                      ? "border-alert focus-within:ring-2 focus-within:ring-alert"
+                      : "border-transparent focus-within:ring-2 focus-within:ring-action"
+                  }`}
+                >
+                  <label className="text-ice/60 text-sm uppercase">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={order.quantity}
+                    onChange={(e) =>
+                      dispatch(setQuantity(Number(e.target.value)))
+                    }
+                    className="bg-transparent text-right text-base sm:text-lg font-semibold w-32 outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+                {quantityInvalid && (
+                  <p className="text-alert text-xs mt-1.5 px-1">
+                    Enter a quantity greater than 0 to continue.
+                  </p>
+                )}
+              </div>
+
+              {/* Limit price — editable, with inline guidance */}
+              <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 focus-within:ring-2 focus-within:ring-action transition-shadow shrink-0">
+                <div className="flex items-center gap-2 relative">
+                  <label className="text-ice/60 text-sm uppercase">
+                    Limit price
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowLimitHint((v) => !v)}
+                    onBlur={() => setShowLimitHint(false)}
+                    aria-label="What is a limit price?"
+                    className="w-6 h-6 rounded-full bg-alert flex items-center justify-center shadow-md shadow-black/20 hover:brightness-110 transition-all hover:cursor-pointer shrink-0"
+                  >
+                    <FontAwesomeIcon
+                      icon={faQuestion}
+                      className="text-white text-xs"
+                    />
+                  </button>
+                  {showLimitHint && (
+                    <div className="absolute left-0 sm:left-full top-full sm:top-1/2 mt-2 sm:mt-0 sm:-translate-y-1/2 sm:ml-3 z-30 w-56 sm:w-60 max-w-[calc(100vw-3rem)] bg-d-blue border-2 border-alert rounded-[14px] p-3 text-xs sm:text-sm text-ice shadow-lg shadow-black/30">
+                      A limit order only fills at your price or better. It may
+                      not fill at all.
+                    </div>
+                  )}
+                </div>
                 <input
                   type="number"
                   min={0}
-                  value={order.quantity}
+                  step={0.01}
+                  value={order.limitPrice}
                   onChange={(e) =>
-                    dispatch(setQuantity(Number(e.target.value)))
+                    dispatch(setLimitPrice(Number(e.target.value)))
                   }
                   className="bg-transparent text-right text-base sm:text-lg font-semibold w-32 outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
-              {quantityInvalid && (
-                <p className="text-alert text-xs mt-1.5 px-1">
-                  Enter a quantity greater than 0 to continue.
-                </p>
-              )}
-            </div>
 
-            {/* Limit price — editable, with inline guidance */}
-            <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 focus-within:ring-2 focus-within:ring-action transition-shadow">
-              <div className="flex items-center gap-2 relative">
-                <label className="text-ice/60 text-sm uppercase">
-                  Limit price
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowLimitHint((v) => !v)}
-                  onBlur={() => setShowLimitHint(false)}
-                  aria-label="What is a limit price?"
-                  className="w-6 h-6 rounded-full bg-alert flex items-center justify-center shadow-md shadow-black/20 hover:brightness-110 transition-all hover:cursor-pointer flex-shrink-0"
-                >
-                  <FontAwesomeIcon
-                    icon={faQuestion}
-                    className="text-white text-xs"
-                  />
-                </button>
-                {showLimitHint && (
-                  <div className="absolute left-0 sm:left-full top-full sm:top-1/2 mt-2 sm:mt-0 sm:-translate-y-1/2 sm:ml-3 z-30 w-56 sm:w-60 max-w-[calc(100vw-3rem)] bg-d-blue border-2 border-alert rounded-[14px] p-3 text-xs sm:text-sm text-ice shadow-lg shadow-black/30">
-                    A limit order only fills at your price or better. It may not
-                    fill at all.
-                  </div>
-                )}
+              {/* Time in force — static */}
+              <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10 shrink-0">
+                <span className="text-ice/60 text-sm uppercase">
+                  Time in force
+                </span>
+                <span className="text-base sm:text-lg font-semibold">
+                  Good till cancelled
+                </span>
               </div>
-              <input
-                type="number"
-                min={0}
-                step={0.01}
-                value={order.limitPrice}
-                onChange={(e) =>
-                  dispatch(setLimitPrice(Number(e.target.value)))
-                }
-                className="bg-transparent text-right text-base sm:text-lg font-semibold w-32 outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
+
+              {/* Estimated cost summary */}
+              <div className="border-2 border-alert rounded-[10px] min-h-[100px] flex items-center px-5 py-4 text-sm sm:text-base text-ice/80 bg-navy tabular-nums shrink-0">
+                Estimated cost {estimatedCost} · fees {fees} · settles T+2
+              </div>
             </div>
 
-            {/* Time in force — static */}
-            <div className="flex justify-between items-center bg-panel rounded-[10px] px-6 py-3 shadow-md shadow-black/10">
-              <span className="text-ice/60 text-sm uppercase">
-                Time in force
-              </span>
-              <span className="text-base sm:text-lg font-semibold">
-                Good till cancelled
-              </span>
-            </div>
-
-            {/* Estimated cost summary */}
-            <div className="border-2 border-alert rounded-[10px] min-h-[100px] flex items-center px-5 py-4 text-sm sm:text-base text-ice/80 bg-navy tabular-nums">
-              Estimated cost {estimatedCost} · fees {fees} · settles T+2
-            </div>
-
+            {/* Pinned action */}
             <button
               onClick={() => dispatch(goToReview())}
               disabled={quantityInvalid}
-              className="mt-2 bg-action hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-white font-bold py-3 rounded-[10px]"
+              className="shrink-0 bg-action hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-white font-bold py-3 rounded-[10px]"
             >
               Review order
             </button>
@@ -160,50 +170,54 @@ export function OrderTicket() {
         )}
 
         {order.step === "review" && (
-          <div className="bg-navy border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4">
-            <h2 className="text-ice/70 uppercase text-sm tracking-wide">
-              Review your order
-            </h2>
-            <div className="bg-panel rounded-[10px] p-4 flex flex-col gap-2 text-sm sm:text-base tabular-nums">
-              <div className="flex justify-between">
-                <span className="text-ice/60">Side</span>
-                <span
-                  className={
-                    isBuy
-                      ? "text-signal font-semibold"
-                      : "text-alert font-semibold"
-                  }
-                >
-                  {order.side.toUpperCase()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ice/60">Symbol</span>
-                <span>{symbol}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ice/60">Quantity</span>
-                <span>{order.quantity}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ice/60">Limit price</span>
-                <span>{order.limitPrice.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between border-t border-card-border pt-2">
-                <span className="text-ice/60">Estimated cost</span>
-                <span className="font-bold">{estimatedCost}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ice/60">Fees</span>
-                <span>{fees}</span>
-              </div>
-              <div className="flex justify-between text-ice/60 text-xs">
-                <span>Settles</span>
-                <span>T+2</span>
+          <div className="bg-navy border-2 border-card-border rounded-[12px] p-4 sm:p-6 flex flex-col gap-4 min-h-0">
+            {/* Scrollable details */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-themed -mx-2 px-2 flex flex-col gap-4">
+              <h2 className="text-ice/70 uppercase text-sm tracking-wide shrink-0">
+                Review your order
+              </h2>
+              <div className="bg-panel rounded-[10px] p-4 flex flex-col gap-2 text-sm sm:text-base tabular-nums shrink-0">
+                <div className="flex justify-between">
+                  <span className="text-ice/60">Side</span>
+                  <span
+                    className={
+                      isBuy
+                        ? "text-signal font-semibold"
+                        : "text-alert font-semibold"
+                    }
+                  >
+                    {order.side.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ice/60">Symbol</span>
+                  <span>{symbol}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ice/60">Quantity</span>
+                  <span>{order.quantity}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ice/60">Limit price</span>
+                  <span>{order.limitPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between border-t border-card-border pt-2">
+                  <span className="text-ice/60">Estimated cost</span>
+                  <span className="font-bold">{estimatedCost}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-ice/60">Fees</span>
+                  <span>{fees}</span>
+                </div>
+                <div className="flex justify-between text-ice/60 text-xs">
+                  <span>Settles</span>
+                  <span>T+2</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-2">
+            {/* Pinned actions */}
+            <div className="flex gap-3 shrink-0">
               <button
                 onClick={() => dispatch(goBackToSize())}
                 className="flex-1 bg-panel hover:bg-panel/70 transition-colors text-ice font-semibold py-3 rounded-[10px] shadow-md shadow-black/10"
@@ -222,7 +236,7 @@ export function OrderTicket() {
 
         {order.step === "rejected" && (
           <div
-            className="rounded-[12px] p-4 sm:p-6 text-center flex flex-col gap-4"
+            className="rounded-[12px] p-4 sm:p-6 text-center flex flex-col gap-4 min-h-0 overflow-y-auto scrollbar-themed"
             style={{ backgroundColor: "#3a1f2b", border: "2px solid #d64545" }}
           >
             <h2
@@ -244,7 +258,7 @@ export function OrderTicket() {
         )}
 
         {order.step === "confirmed" && (
-          <div className="bg-navy border-2 border-card-border rounded-[12px] p-4 sm:p-6 text-center flex flex-col gap-4">
+          <div className="bg-navy border-2 border-card-border rounded-[12px] p-4 sm:p-6 text-center flex flex-col gap-4 min-h-0 overflow-y-auto scrollbar-themed">
             <h2 className="text-signal text-base sm:text-lg font-bold">
               Order placed
             </h2>
